@@ -1,0 +1,74 @@
+﻿@model IEnumerable<M1_ProjetWebApp.Models.Article>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Blog";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Blog</h1>
+    @if (User.IsInRole("Admin") || User.IsInRole("Auteur"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nouvel article
+        </a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <p>Aucun article pour le moment. Soyez le premier à publier !</p>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h3 class="card-title mb-0">@item.Title</h3>
+                            @if (item.AuthorId == currentUserId || User.IsInRole("Admin"))
+                            {
+                                <div class="btn-group" role="group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i> Modifier
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </a>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-person-circle"></i> @(item.Author?.UserName ?? "Auteur inconnu")
+                            <span class="ms-2"><i class="bi bi-calendar3"></i> @item.PublishedDate.ToString("dd/MM/yyyy à HH:mm")</span>
+                        </div>
+
+                        <p class="card-text">
+                            @if (item.Content.Length > 300)
+                            {
+                                @item.Content.Substring(0, 300)
+                    
+                                <text>...</text>
+                            }
+                            else
+                            {
+                                @item.Content
+                            }
+                        </p>
+
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">
+                            Lire la suite <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

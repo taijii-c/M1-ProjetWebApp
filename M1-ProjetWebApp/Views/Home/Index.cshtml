@@ -1,0 +1,145 @@
+@using M1_ProjetWebApp.Models.ViewModels
+@model HomeViewModel
+
+@{
+    ViewData["Title"] = "Accueil";
+}
+
+<div class="px-4 py-5 my-5">
+    <div class="col-lg-8 mx-auto">
+        <p class="text-muted mb-3">
+            Hello, je suis
+        </p>
+        <h1 class="display-3 fw-bold mb-3">
+            Titouan Chabanon
+        </h1>
+        <h3 class="mb-3">
+            Développeur Web Full-Stack
+        </h3>
+        <p class="text-muted mb-4">
+            Étudiant en Master | Alternant développeur
+        </p>
+        <p class="mb-4">
+            Passionné par le développement web et l'intelligence artificielle,
+            je conçois des applications en combinant expertise technique et créativité.
+        </p>
+        <div class="d-grid gap-2 d-sm-flex">
+            <a asp-controller="Projects" asp-action="Index" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-folder"></i> Mes Projets
+            </a>
+            <a asp-controller="Articles" asp-action="Index" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="bi bi-journal-text"></i> Mon Blog
+            </a>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-code-square"></i> Derniers Projets</h2>
+        <a asp-controller="Projects" asp-action="Index" class="btn btn-sm btn-outline-primary">
+            Voir tous les projets <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    @if (Model.LatestProjects.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var project in Model.LatestProjects)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrEmpty(project.ImagePath))
+                        {
+                            <img src="@project.ImagePath" class="card-img-top" alt="@project.Title"
+                                 style="height: 200px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                 style="height: 200px;">
+                                <span class="text-white"><i class="bi bi-image"></i> Pas d'image</span>
+                            </div>
+                        }
+
+                        <div class="card-body">
+                            <h5 class="card-title">@project.Title</h5>
+                            <p class="card-text">
+                                @(project.Description.Length > 100 ? project.Description.Substring(0, 100) + "..." : project.Description)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a asp-controller="Projects" asp-action="Details" asp-route-id="@project.Id"
+                               class="btn btn-sm btn-outline-primary w-100">
+                                Voir le projet
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Aucun projet pour le moment.
+        </div>
+    }
+</div>
+
+<hr class="my-5">
+
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-journal-text"></i> Derniers Articles</h2>
+        <a asp-controller="Articles" asp-action="Index" class="btn btn-sm btn-outline-primary">
+            Voir tous les articles <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    @if (Model.LatestArticles.Any())
+    {
+        <div class="row">
+            @foreach (var article in Model.LatestArticles)
+            {
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@article.Title</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-person-circle"></i> @(article.Author?.UserName ?? "Auteur inconnu")
+                                <span class="ms-2">
+                                    <i class="bi bi-calendar3"></i> @article.PublishedDate.ToString("dd/MM/yyyy")
+                                </span>
+                            </p>
+                            <p class="card-text">
+                                @if (article.Content.Length > 200)
+                                {
+                                    @article.Content.Substring(0, 200)
+                        
+                                    <text>...</text>
+                                }
+                                else
+                                {
+                                    @article.Content
+                                }
+                            </p>
+                            <a asp-controller="Articles" asp-action="Details" asp-route-id="@article.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                Lire la suite <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Aucun article pour le moment.
+        </div>
+    }
+</div>

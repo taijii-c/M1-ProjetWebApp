@@ -1,0 +1,60 @@
+﻿@model M1_ProjetWebApp.Models.Project
+
+@{
+    ViewData["Title"] = "Détails du projet";
+}
+
+<h1>@Model.Title</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" class="card-img-top" alt="@Model.Title" />
+            }
+
+            <div class="card-body">
+                <h5 class="card-title">Description</h5>
+                <p class="card-text">@Model.Description</p>
+
+                <hr />
+
+                <dl class="row">
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DateCreated)</dt>
+                    <dd class="col-sm-9">@Model.DateCreated.ToString("dd/MM/yyyy")</dd>
+
+                    @if (!string.IsNullOrEmpty(Model.GithubUrl))
+                    {
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.GithubUrl)</dt>
+                        <dd class="col-sm-9">
+                            <a href="@Model.GithubUrl" target="_blank" class="btn btn-sm btn-outline-dark">
+                                <i class="bi bi-github"></i> Voir sur GitHub
+                            </a>
+                        </dd>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.LiveUrl))
+                    {
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.LiveUrl)</dt>
+                        <dd class="col-sm-9">
+                            <a href="@Model.LiveUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right"></i> Voir le site
+                            </a>
+                        </dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Modifier</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Supprimer</a>
+            }
+            <a asp-action="Index" class="btn btn-secondary">Retour à la liste</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+﻿@model M1_ProjetWebApp.Models.Article
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = Model.Title;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<article>
+    <div class="mb-4">
+        <h1 class="display-4">@Model.Title</h1>
+        <div class="text-muted">
+            <i class="bi bi-person-circle"></i> <strong>@(Model.Author?.UserName ?? "Auteur inconnu")</strong>
+            <span class="ms-3"><i class="bi bi-calendar3"></i> @Model.PublishedDate.ToString("dd MMMM yyyy à HH:mm")</span>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="article-content mb-4" style="white-space: pre-wrap;">@Model.Content</div>
+
+    <hr />
+
+    <div class="mt-4">
+        @if (Model.AuthorId == currentUserId || User.IsInRole("Admin"))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Supprimer
+            </a>
+        }
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour au blog
+        </a>
+    </div>
+</article>
