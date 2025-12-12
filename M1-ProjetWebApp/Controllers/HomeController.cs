@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using M1_ProjetWebApp.Data;
+using M1_ProjetWebApp.Models;
 using M1_ProjetWebApp.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,8 @@ namespace M1_ProjetWebApp.Controllers
         // GET: /
         public async Task<IActionResult> Index()
         {
-            var NUMBER_OF_ITEMS = 3;
+            const int NUMBER_OF_ITEMS = 3;
+            
             var viewModel = new HomeViewModel
             {
                 LatestProjects = await _context.Projects
