@@ -45,13 +45,91 @@ namespace M1_ProjetWebApp.Controllers
 
             var article = await _context.Articles
                 .Include(a => a.Author)
+                .Include(a => a.Comments)
+                .ThenInclude(c => c.Author)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (article == null)
             {
                 return NotFound();
             }
 
-            return View(article);
+            var viewModel = new ArticleDetailsViewModel
+            {
+                Article = article,
+                Comments = article.Comments.OrderByDescending(c => c.PublishedDate).ToList(),
+                NewComment = new CommentViewModel { ArticleId = article.Id }
+            };
+
+            return View(viewModel);
+        }
+
+        // POST: Articles/AddComment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> AddComment(CommentViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var comment = new Comment
+                {
+                    Content = model.Content,
+                    ArticleId = model.ArticleId,
+                    AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                    PublishedDate = DateTime.Now
+                };
+
+                _context.Comments.Add(comment);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Details), new { id = model.ArticleId });
+            }
+
+            var article = await _context.Articles
+                .Include(a => a.Author)
+                .Include(a => a.Comments)
+                .ThenInclude(c => c.Author)
+                .FirstOrDefaultAsync(m => m.Id == model.ArticleId);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new ArticleDetailsViewModel
+            {
+                Article = article,
+                Comments = article.Comments.OrderByDescending(c => c.PublishedDate).ToList(),
+                NewComment = model
+            };
+
+            return View("Details", viewModel);
+        }
+
+        // POST: Articles/DeleteComment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> DeleteComment(int id)
+        {
+            var comment = await _context.Comments.FindAsync(id);
+
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            if (!IsAuthorOrAdmin(comment.AuthorId))
+            {
+                return Forbid();
+            }
+
+            var articleId = comment.ArticleId;
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = articleId });
         }
 
         // GET: Articles/Create
@@ -100,7 +178,7 @@ namespace M1_ProjetWebApp.Controllers
                 return NotFound();
             }
 
-            if (!IsAuthorOrAdmin(article))
+            if (!IsAuthorOrAdmin(article.AuthorId))
             {
                 return Forbid();
             }
@@ -135,7 +213,7 @@ namespace M1_ProjetWebApp.Controllers
                 return NotFound();
             }
 
-            if (!IsAuthorOrAdmin(originalArticle))
+            if (!IsAuthorOrAdmin(originalArticle.AuthorId))
             {
                 return Forbid();
             }
@@ -194,7 +272,7 @@ namespace M1_ProjetWebApp.Controllers
                 return NotFound();
             }
 
-            if (!IsAuthorOrAdmin(article))
+            if (!IsAuthorOrAdmin(article.AuthorId))
             {
                 return Forbid();
             }
@@ -212,7 +290,7 @@ namespace M1_ProjetWebApp.Controllers
 
             if (article != null)
             {
-                if (!IsAuthorOrAdmin(article))
+                if (!IsAuthorOrAdmin(article.AuthorId))
                 {
                     return Forbid();
                 }
@@ -232,10 +310,10 @@ namespace M1_ProjetWebApp.Controllers
         /**
          * Verify if the current user is the author of the article or an admin
          */
-        private bool IsAuthorOrAdmin(Article article)
+        private bool IsAuthorOrAdmin(string authorId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return article.AuthorId == currentUserId || User.IsInRole("Admin");
+            return authorId == currentUserId || User.IsInRole("Admin");
         }
     }
 }

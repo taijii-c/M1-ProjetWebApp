@@ -1,33 +1,34 @@
-﻿@model M1_ProjetWebApp.Models.Article
+﻿@using M1_ProjetWebApp.Models.ViewModels
 @using System.Security.Claims
+@model ArticleDetailsViewModel
 
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = Model.Article.Title;
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 <article>
     <div class="mb-4">
-        <h1 class="display-4">@Model.Title</h1>
+        <h1 class="display-4">@Model.Article.Title</h1>
         <div class="text-muted">
-            <i class="bi bi-person-circle"></i> <strong>@(Model.Author?.UserName ?? "Auteur inconnu")</strong>
-            <span class="ms-3"><i class="bi bi-calendar3"></i> @Model.PublishedDate.ToString("dd MMMM yyyy à HH:mm")</span>
+            <i class="bi bi-person-circle"></i> <strong>@(Model.Article.Author?.UserName ?? "Auteur inconnu")</strong>
+            <span class="ms-3"><i class="bi bi-calendar3"></i> @Model.Article.PublishedDate.ToString("dd MMMM yyyy à HH:mm")</span>
         </div>
     </div>
 
     <hr />
 
-    <div class="article-content mb-4" style="white-space: pre-wrap;">@Model.Content</div>
+    <div class="article-content mb-4" style="white-space: pre-wrap;">@Model.Article.Content</div>
 
     <hr />
 
-    <div class="mt-4">
-        @if (Model.AuthorId == currentUserId || User.IsInRole("Admin"))
+    <div class="mt-4 mb-4">
+        @if (Model.Article.AuthorId == currentUserId || User.IsInRole("Admin"))
         {
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+            <a asp-action="Edit" asp-route-id="@Model.Article.Id" class="btn btn-warning">
                 <i class="bi bi-pencil"></i> Modifier
             </a>
-            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+            <a asp-action="Delete" asp-route-id="@Model.Article.Id" class="btn btn-danger">
                 <i class="bi bi-trash"></i> Supprimer
             </a>
         }
@@ -36,3 +37,81 @@
         </a>
     </div>
 </article>
+
+<hr class="my-5" />
+
+<div class="comments-section">
+    <h3 class="mb-4">
+        <i class="bi bi-chat-dots"></i> Commentaires (@Model.Comments.Count)
+    </h3>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Ajouter un commentaire</h5>
+                <form asp-action="AddComment" asp-controller="Articles" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" name="ArticleId" value="@Model.Article.Id" />
+
+                    <div class="mb-3">
+                        <label for="Content" class="form-label">Votre commentaire</label>
+                        <textarea name="Content" id="Content" class="form-control" rows="3"
+                              placeholder="Partagez votre avis..."></textarea>
+                        <span class="text-danger field-validation-valid" data-valmsg-for="Content" data-valmsg-replace="true"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Publier le commentaire
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <a asp-area="Identity" asp-page="/Account/Login">Connectez-vous</a> pour laisser un commentaire.
+        </div>
+    }
+
+    @if (Model.Comments.Any())
+    {
+        <div class="mt-4">
+            @foreach (var comment in Model.Comments)
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong><i class="bi bi-person-circle"></i> @(comment.Author?.UserName ?? "Anonyme")</strong>
+                                <small class="text-muted ms-2">
+                                    <i class="bi bi-clock"></i> @comment.PublishedDate.ToString("dd/MM/yyyy à HH:mm")
+                                </small>
+                            </div>
+
+                            @if (comment.AuthorId == currentUserId || User.IsInRole("Admin"))
+                            {
+                                <form asp-action="DeleteComment" asp-controller="Articles" method="post" asp-route-id="@comment.Id"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                        <p class="mt-2 mb-0">@comment.Content</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
