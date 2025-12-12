@@ -1,4 +1,4 @@
-﻿@model IEnumerable<M1_ProjetWebApp.Models.Article>
+﻿@model M1_ProjetWebApp.Models.ViewModels.PaginatedList<M1_ProjetWebApp.Models.Article>
 @using System.Security.Claims
 
 @{
@@ -54,7 +54,7 @@ else
                             @if (item.Content.Length > 300)
                             {
                                 @item.Content.Substring(0, 300)
-                    
+
                                 <text>...</text>
                             }
                             else
@@ -71,4 +71,75 @@ else
             </div>
         }
     </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Pagination des articles" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="1" aria-label="Première page">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)" aria-label="Précédent">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                @{
+                    var startPage = Math.Max(1, Model.PageIndex - 2);
+                    var endPage = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+                }
+
+                @if (startPage > 1)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                @for (var i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@i">
+                            @i
+                            @if (i == Model.PageIndex)
+                            {
+                                <span class="visually-hidden">(page actuelle)</span>
+                            }
+                        </a>
+                    </li>
+                }
+
+                @if (endPage < Model.TotalPages)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+
+                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)" aria-label="Suivant">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+
+                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@Model.TotalPages" aria-label="Dernière page">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="text-center text-muted small mt-2">
+                <p>
+                    Page @Model.PageIndex sur @Model.TotalPages
+                    (@Model.TotalItems article@(Model.TotalItems > 1 ? "s" : "") au total)
+                </p>
+            </div>
+        </nav>
+    }
 }

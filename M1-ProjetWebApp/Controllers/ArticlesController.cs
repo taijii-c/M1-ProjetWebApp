@@ -18,6 +18,7 @@ namespace M1_ProjetWebApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private const int PAGE_SIZE = 5;
 
         public ArticlesController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
@@ -26,13 +27,16 @@ namespace M1_ProjetWebApp.Controllers
         }
 
         // GET: Articles
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? pageNumber)
         {
-            var articles = await _context.Articles
+            var articles = _context.Articles
                 .Include(a => a.Author)
-                .OrderByDescending(a => a.PublishedDate)
-                .ToListAsync();
-            return View(articles);
+                .OrderByDescending(a => a.PublishedDate);
+
+            var pageIndex = pageNumber ?? 1;
+            var paginatedArticles = await PaginatedList<Article>.CreateAsync(articles, pageIndex, PAGE_SIZE);
+
+            return View(paginatedArticles);
         }
 
         // GET: Articles/Details/5
